@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="COD Settle">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<title>COD SETTLE</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --brand: #0f766e;
+    --brand-ink: #ffffff;
+    --ok: #15803d;
+    --ok-bg: #dcfce7;
+    --warn: #b45309;
+    --warn-bg: #fef3c7;
+    --err: #b91c1c;
+    --err-bg: #fee2e2;
+    --idle-bg: #eef2f6;
+    --focus: #14b8a6;
+    --radius: 18px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1114;
+      --card: #141c21;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --line: #26323a;
+      --brand: #14b8a6;
+      --brand-ink: #04201d;
+      --ok: #4ade80;
+      --ok-bg: #0f2e1b;
+      --warn: #fbbf24;
+      --warn-bg: #33270b;
+      --err: #f87171;
+      --err-bg: #3a1515;
+      --idle-bg: #1a242a;
+      --focus: #2dd4bf;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: calc(16px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom));
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 22px;
+    letter-spacing: 0.04em;
+    margin: 0;
+    font-weight: 800;
+  }
+  h1 span { color: var(--brand); }
+  .tag { font-size: 12px; color: var(--muted); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .field + .field { margin-top: 14px; }
+  .field label {
+    display: block;
+    font-size: 15px;
+    font-weight: 650;
+    margin-bottom: 6px;
+  }
+  .field .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    background: var(--bg);
+    padding: 0 14px;
+    transition: border-color .15s;
+  }
+  .input-wrap:focus-within { border-color: var(--focus); }
+  .input-wrap.invalid { border-color: var(--err); }
+  .input-wrap .cur {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-right: 8px;
+  }
+  .input-wrap input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 30px;               /* >=16px prevents iOS zoom */
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 12px 0;
+    height: 64px;
+  }
+  .input-wrap input::placeholder { color: var(--muted); opacity: .45; }
+  .err-msg { color: var(--err); font-size: 13px; margin-top: 4px; min-height: 0; }
+
+  .status {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    font-weight: 600;
+    background: var(--idle-bg);
+    color: var(--muted);
+  }
+  .status .icon { font-size: 22px; line-height: 1; flex: none; }
+  .status .title { font-size: 17px; }
+  .status .sub { font-size: 14px; font-weight: 500; margin-top: 2px; }
+  .status.ok   { background: var(--ok-bg);   color: var(--ok); }
+  .status.warn { background: var(--warn-bg); color: var(--warn); }
+  .status.err  { background: var(--err-bg);  color: var(--err); }
+
+  .transfer {
+    background: var(--brand);
+    color: var(--brand-ink);
+    border: 0;
+    text-align: center;
+    padding: 20px 16px 18px;
+  }
+  .transfer .label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    opacity: .9;
+  }
+  .transfer .route { font-size: 14px; opacity: .85; margin-top: 2px; }
+  .transfer .amount {
+    font-size: clamp(40px, 13vw, 60px);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    margin: 8px 0 4px;
+    word-break: break-all;
+  }
+  .transfer .amount small { font-size: .45em; font-weight: 700; margin-right: 4px; }
+  .transfer.dim { background: var(--idle-bg); color: var(--muted); }
+  .transfer.caution { background: var(--warn-bg); color: var(--warn); }
+  .transfer .note { font-size: 13px; font-weight: 600; margin-top: 4px; }
+  .copy-btn {
+    margin-top: 10px;
+    border: 2px solid currentColor;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .copy-btn[hidden] { display: none; }
+
+  .rows .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 0;
+    gap: 12px;
+  }
+  .rows .row + .row { border-top: 1px solid var(--line); }
+  .rows .k { color: var(--muted); font-size: 15px; }
+  .rows .v {
+    font-size: 22px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .v.ok { color: var(--ok); }
+  .v.warn { color: var(--warn); }
+
+  .reset {
+    width: 100%;
+    height: 56px;
+    border-radius: 14px;
+    border: 2px solid var(--line);
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .reset:active, .copy-btn:active { transform: scale(.98); }
+  .privacy { text-align: center; color: var(--muted); font-size: 12px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <h1>COD <span>SETTLE</span></h1>
+    <div class="tag">RM · Malaysia</div>
+  </header>
+
+  <form id="form" class="card" autocomplete="off" novalidate onsubmit="return false">
+    <div class="field">
+      <label for="shopee">Shopee Total COD <span class="hint">· from Shopee Work</span></label>
+      <div class="input-wrap" id="w-shopee">
+        <span class="cur">RM</span>
+        <input id="shopee" name="x1" type="text" inputmode="decimal" enterkeyhint="next"
+               autocomplete="off" autocorrect="off" spellcheck="false" placeholder="0.00" aria-describedby="e-shopee">
+      </div>
+      <div class="err-msg" id="e-shopee"></div>
+    </div>
+    <div class="field">
+      <label for="tng">Received via Touch ’n Go</label>
+      <div class="input-wrap" id="w-tng">
+        <span class="cur">RM</span>
+        <input id="tng" name="x2" type="text" inputmode="decimal" enterkeyhint="next"
+               autocomplete="off" autocorrect="off" spellcheck="false" placeholder="0.00" aria-describedby="e-tng">
+      </div>
+      <div class="err-msg" id="e-tng"></div>
+    </div>
+    <div class="field">
+      <label for="cash">Received in Cash</label>
+      <div class="input-wrap" id="w-cash">
+        <span class="cur">RM</span>
+        <input id="cash" name="x3" type="text" inputmode="decimal" enterkeyhint="done"
+               autocomplete="off" autocorrect="off" spellcheck="false" placeholder="0.00" aria-describedby="e-cash">
+      </div>
+      <div class="err-msg" id="e-cash"></div>
+    </div>
+  </form>
+
+  <div id="status" class="status" role="status" aria-live="polite">
+    <div class="icon" id="s-icon">✎</div>
+    <div>
+      <div class="title" id="s-title">Enter all three amounts</div>
+      <div class="sub" id="s-sub">Type 0 if nothing was received.</div>
+    </div>
+  </div>
+
+  <section id="transfer" class="card transfer dim" aria-live="polite">
+    <div class="label">Transfer to Maybank</div>
+    <div class="route">TnG ➜ Maybank · Shopee Total − Cash</div>
+    <div class="amount" id="t-amount"><small>RM</small>—</div>
+    <div class="note" id="t-note"></div>
+    <button type="button" class="copy-btn" id="copy" hidden>Copy amount</button>
+  </section>
+
+  <section class="card rows">
+    <div class="row"><span class="k">Total collected<br><small>TnG + Cash</small></span><span class="v" id="r-collected">—</span></div>
+    <div class="row"><span class="k">COD difference<br><small>Shopee − Collected</small></span><span class="v" id="r-diff">—</span></div>
+  </section>
+
+  <button type="button" class="reset" id="reset">Clear all</button>
+  <p class="privacy">Nothing is saved. Refresh or close the app to start fresh.</p>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var MAX_CENTS = 99999999; // RM 999,999.99
+  var ids = ['shopee', 'tng', 'cash'];
+  var el = {};
+  ids.forEach(function (id) {
+    el[id] = document.getElementById(id);
+    el['w-' + id] = document.getElementById('w-' + id);
+    el['e-' + id] = document.getElementById('e-' + id);
+  });
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---- Money helpers (integer cents, no floating point errors) ----
+  function parseCents(str) {
+    if (str === '') return { empty: true };
+    if (!/^\d+(\.\d{0,2})?$/.test(str)) return { error: 'Enter a valid amount, e.g. 125.50' };
+    var parts = str.split('.');
+    var ringgit = parseInt(parts[0], 10);
+    var sen = parts[1] ? parseInt((parts[1] + '0').slice(0, 2), 10) : 0;
+    var cents = ringgit * 100 + sen;
+    if (!isFinite(cents) || cents > MAX_CENTS) return { error: 'Amount too large' };
+    return { cents: cents };
+  }
+  function fmt(cents) {
+    var neg = cents < 0;
+    var abs = Math.abs(cents);
+    var r = Math.floor(abs / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    var s = ('0' + (abs % 100)).slice(-2);
+    return (neg ? '−' : '') + 'RM ' + r + '.' + s;
+  }
+  function plain(cents) { return (cents / 100).toFixed(2); }
+
+  // ---- Input sanitising: digits + one dot, max 2 decimals, no negatives ----
+  function sanitize(v) {
+    v = v.replace(/,/g, '.').replace(/[^\d.]/g, '');
+    var i = v.indexOf('.');
+    if (i !== -1) {
+      v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, '').slice(0, 2);
+    }
+    if (v.charAt(0) === '.') v = '0' + v;
+    v = v.replace(/^0+(?=\d)/, '');
+    return v;
+  }
+
+  function setStatus(kind, icon, title, sub) {
+    var s = $('status');
+    s.className = 'status' + (kind ? ' ' + kind : '');
+    $('s-icon').textContent = icon;
+    $('s-title').textContent = title;
+    $('s-sub').textContent = sub || '';
+  }
+  function setTransfer(kind, cents, note) {
+    var t = $('transfer');
+    t.className = 'card transfer' + (kind ? ' ' + kind : '');
+    var amt = $('t-amount');
+    if (cents === null) {
+      amt.innerHTML = '<small>RM</small>—';
+    } else {
+      amt.innerHTML = '<small>RM</small>' + fmt(cents).replace(/^RM /, '');
+    }
+    $('t-note').textContent = note || '';
+    var copy = $('copy');
+    copy.hidden = cents === null || cents < 0;
+    copy.dataset.value = cents === null ? '' : plain(cents);
+    copy.textContent = 'Copy amount';
+  }
+
+  function update() {
+    var vals = {}, anyError = false, allFilled = true;
+    ids.forEach(function (id) {
+      var p = parseCents(el[id].value);
+      vals[id] = p;
+      var bad = !!p.error;
+      el['w-' + id].classList.toggle('invalid', bad);
+      el['e-' + id].textContent = bad ? p.error : '';
+      if (bad) anyError = true;
+      if (p.empty || bad) allFilled = false;
+    });
+
+    var collectedEl = $('r-collected'), diffEl = $('r-diff');
+    collectedEl.className = 'v'; diffEl.className = 'v';
+
+    if (anyError) {
+      setStatus('err', '✕', 'Invalid amount', 'Fix the highlighted field.');
+      setTransfer('dim', null);
+      collectedEl.textContent = '—'; diffEl.textContent = '—';
+      return;
+    }
+    if (!allFilled) {
+      // Show partial collected total when possible
+      var t = vals.tng.cents, c = vals.cash.cents;
+      collectedEl.textContent = (t !== undefined || c !== undefined) ? fmt((t || 0) + (c || 0)) : '—';
+      diffEl.textContent = '—';
+      setStatus('', '✎', 'Enter all three amounts', 'Type 0 if nothing was received.');
+      setTransfer('dim', null);
+      return;
+    }
+
+    var shopee = vals.shopee.cents, tng = vals.tng.cents, cash = vals.cash.cents;
+    var collected = tng + cash;
+    var diff = shopee - collected;
+    var transfer = shopee - cash;
+
+    collectedEl.textContent = fmt(collected);
+    diffEl.textContent = fmt(diff);
+
+    if (cash > shopee) {
+      diffEl.classList.add('warn');
+      setStatus('err', '✕', 'Cash is more than Shopee Total',
+        'Cash ' + fmt(cash) + ' exceeds Shopee Total ' + fmt(shopee) + '. Check your amounts.');
+      setTransfer('caution', null, 'Cannot calculate a transfer — cash exceeds Shopee Total.');
+      return;
+    }
+
+    if (diff === 0) {
+      collectedEl.classList.add('ok'); diffEl.classList.add('ok');
+      setStatus('ok', '✓', 'Settlement balanced', 'TnG + Cash matches Shopee Total exactly.');
+      setTransfer('', transfer, transfer === 0 ? 'Nothing to transfer.' : 'Amounts verified ✓');
+    } else {
+      diffEl.classList.add('warn');
+      var short = diff > 0;
+      setStatus('warn', '!',
+        short ? 'Short by ' + fmt(diff) : 'Over by ' + fmt(-diff),
+        short
+          ? 'TnG + Cash is less than Shopee Total. Recheck before transferring.'
+          : 'TnG + Cash is more than Shopee Total. Recheck before transferring.');
+      setTransfer('caution', transfer, '⚠ Not verified — amounts do not match');
+    }
+  }
+
+  ids.forEach(function (id, idx) {
+    var input = el[id];
+    input.addEventListener('input', function () {
+      var before = input.value;
+      var clean = sanitize(before);
+      if (clean !== before) {
+        input.value = clean;
+        try { input.setSelectionRange(clean.length, clean.length); } catch (e) {}
+      }
+      update();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var next = el[ids[idx + 1]];
+        if (next) next.focus(); else input.blur();
+      }
+    });
+    input.addEventListener('blur', function () {
+      // Tidy to 2 decimals on leaving the field
+      var p = parseCents(input.value);
+      if (p.cents !== undefined) { input.value = plain(p.cents); update(); }
+    });
+  });
+
+  function clearAll() {
+    ids.forEach(function (id) { el[id].value = ''; });
+    update();
+  }
+
+  $('reset').addEventListener('click', function () {
+    clearAll();
+    el.shopee.focus();
+  });
+
+  $('copy').addEventListener('click', function () {
+    var btn = this, v = btn.dataset.value;
+    if (!v) return;
+    function done() { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy amount'; }, 1500); }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(v).then(done, fallback);
+    } else { fallback(); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = v; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  });
+
+  // Always start empty: browsers may restore form values on reload or back/forward.
+  clearAll();
+  window.addEventListener('pageshow', clearAll);
+})();
+</script>
+</body>
+</html>
