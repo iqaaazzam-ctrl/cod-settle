@@ -29,7 +29,7 @@ const fs = require('fs');
     assert.deepStrictEqual(await st(), ['Over by RM 29.50', 'RM320.50', 'RM 529.50', '−RM 29.50']);
     await fill('100', '0', '150');
     assert.deepStrictEqual(await st(), ['Cash is more than Shopee Total', 'RM—', 'RM 150.00', '−RM 50.00']);
-    assert.strictEqual(await p.isHidden('#copy'), true);
+    assert.strictEqual(await p.locator('#copy').count(), 0);
     await p.fill('#shopee', ''); await p.type('#shopee', '-12.345abc');
     assert.strictEqual(await p.inputValue('#shopee'), '12.34');
     await p.fill('#shopee', '0.1'); await p.fill('#tng', '0.2'); await p.fill('#cash', '0');

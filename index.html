@@ -222,15 +222,6 @@
     padding: 6px 12px; border-radius: 999px; background: rgba(0,0,0,.1);
   }
   .transfer .note:empty { display: none; }
-  .copy-btn {
-    display: block; width: 100%;
-    margin-top: 16px; height: 54px;
-    border: 0; border-radius: 16px;
-    background: var(--maybank-ink); color: var(--maybank);
-    font: inherit; font-weight: 800; font-size: 16px;
-    cursor: pointer;
-  }
-  .copy-btn[hidden] { display: none; }
 
   .transfer.dim, .transfer.caution {
     background: var(--card); color: var(--text);
@@ -242,7 +233,6 @@
   .transfer.caution { border: 1.5px solid color-mix(in srgb, var(--warn) 55%, transparent); }
   .transfer.caution .amount { color: var(--warn); }
   .transfer.caution .note { background: var(--warn-bg); color: var(--warn); }
-  .transfer.caution .copy-btn { background: var(--card-2); color: var(--warn); border: 1.5px solid color-mix(in srgb, var(--warn) 45%, transparent); }
 
   /* Breakdown */
   .rows { padding: 6px 18px; }
@@ -260,7 +250,7 @@
     font: inherit; font-size: 16px; font-weight: 750; cursor: pointer;
     box-shadow: var(--shadow);
   }
-  .reset:active, .copy-btn:active { transform: scale(.985); }
+  .reset:active { transform: scale(.985); }
   .privacy { text-align: center; color: var(--muted); font-size: 12px; margin: 16px 0 0; }
   .privacy span { display: inline-flex; align-items: center; gap: 6px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -336,7 +326,6 @@
     <div class="amount" id="t-amount"><small>RM</small>—</div>
     <div class="formula">Shopee Total − Cash</div>
     <div class="note" id="t-note"></div>
-    <button type="button" class="copy-btn" id="copy" hidden>Copy amount</button>
   </section>
 
   <div class="section-title">Breakdown</div>
@@ -412,10 +401,6 @@
       amt.innerHTML = '<small>RM</small>' + fmt(cents).replace(/^RM /, '');
     }
     $('t-note').textContent = note || '';
-    var copy = $('copy');
-    copy.hidden = cents === null || cents < 0;
-    copy.dataset.value = cents === null ? '' : plain(cents);
-    copy.textContent = 'Copy amount';
   }
 
   function update() {
@@ -514,23 +499,6 @@
   $('reset').addEventListener('click', function () {
     clearAll();
     el.shopee.focus();
-  });
-
-  $('copy').addEventListener('click', function () {
-    var btn = this, v = btn.dataset.value;
-    if (!v) return;
-    function done() { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy amount'; }, 1500); }
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(v).then(done, fallback);
-    } else { fallback(); }
-    function fallback() {
-      var ta = document.createElement('textarea');
-      ta.value = v; ta.setAttribute('readonly', '');
-      ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); done(); } catch (e) {}
-      document.body.removeChild(ta);
-    }
   });
 
   // Brand logos: use official logo files from /logos if they exist, else keep the brand badge.
